@@ -7,7 +7,11 @@
   const state = { source:null, image:null, originalUrl:null, palette:[], result:null, inkCount:5, mode:'solid', view:'separated', selectedInk:0, busy:false, cancelled:false, generation:0, timer:null, pending:false, pendingAnalyze:false };
   function hex(rgb) { return '#' + rgb.map(v => Math.round(v).toString(16).padStart(2,'0')).join('').toUpperCase(); }
   function parseHex(text) { const s=String(text).trim().replace(/^#/,''); if(!/^[0-9a-f]{6}$/i.test(s)) throw new Error('Use a six-digit ink color, for example #E85A32.'); return [0,2,4].map(i=>parseInt(s.slice(i,i+2),16)); }
-  function status(message,error) { $('status').textContent=message; $('status').className=error?'error':''; }
+  function status(message,error) {
+    $('status').textContent=message; $('status').className=error?'error':'';
+    $('readStatus').textContent=message; $('readStatus').className='capture-status'+(error?' error':'');
+    if(error) console.error('[COMMOT] '+message);
+  }
   function options(fullResolution) {
     let substrate=$('substrate').value;
     if(substrate==='custom') substrate=parseHex($('substrateHex').value);
@@ -85,6 +89,7 @@
   function schedule(analyze) { clearTimeout(state.timer);state.pending=true;state.pendingAnalyze=state.pendingAnalyze||analyze;updateButtons();state.timer=setTimeout(()=>recompute(false),200); }
   function selectView(view) { state.view=view;paletteUI();const g=++state.generation;drawPreview(g).catch(e=>status(e.message,true)); }
   async function readArtwork() {
+    if(state.busy)return;
     busy(true);status('Reading the visible artwork…');
     try {
       const read=await Host.readPreview(1000);
@@ -96,7 +101,7 @@
       const maxLpi=Math.floor(Math.min(120,read.source.resolution/4));$('lpi').max=String(maxLpi);
       if(Number($('lpi').value)>maxLpi)$('lpi').value=String(Math.max(10,Math.floor(read.source.resolution/6)));
       await recompute(true);
-    } catch(e) {status(e.message||String(e),true);} finally {busy(false);}
+    } catch(e) {console.error('[COMMOT] Artwork capture failed',e);status(e.message||String(e),true);} finally {busy(false);}
   }
   async function output(kind) {
     clearTimeout(state.timer);

@@ -23,7 +23,7 @@ class Element {
   addEventListener(name, fn) { (this.listeners[name]||(this.listeners[name]=[])).push(fn); }
   async dispatch(name, force=false) { if(this.disabled&&!force)return;for(const fn of this.listeners[name]||[]) await fn({target:this,type:name}); }
 }
-function harness() {
+function harness({readError}={}) {
   const ids = new Map();
   const html = fs.readFileSync(path.join(plugin,'index.html'),'utf8');
   for (const match of html.matchAll(/<([a-z-]+)\b([^>]*\bid="([^"]+)"[^>]*)>/gi)) {
@@ -42,7 +42,7 @@ function harness() {
   const calls={reads:0,analyses:[],outputs:[],encodes:[],separations:[]};
   let analyzeGate=null, encodeCount=0;
   const Host={
-    async readPreview() {calls.reads++;return {source,image:preview,dataUrl:'source-url'};},
+    async readPreview() {calls.reads++;if(readError)throw new Error(readError);return {source,image:preview,dataUrl:'source-url'};},
     async analyzeSource(s,options,progress) {calls.analyses.push({...options});if(analyzeGate)await analyzeGate;progress(1,'Analyzed');return Engine.analyze(full,options);},
     async encodePreview(data,width,height,background) {calls.encodes.push({data:new Uint8Array(data),width,height,background});return 'preview-'+(++encodeCount);},
     async createSeparations(s,palette,options) {calls.outputs.push({kind:'layers',source:s,palette:palette.map(c=>c.slice()),options:{...options}});return {name:'Separated art'};},
@@ -66,6 +66,14 @@ async function test(name,fn){await fn();count++;console.log('PASS '+name);}
     assert.equal(h.calls.reads,1);assert.equal(h.calls.analyses.length,1);assert.equal(h.fields().length,4,'Rare full-resolution accent must be inferred');
     assert.equal(h.$('createLayers').disabled,false);assert.equal(h.$('exportFilms').disabled,false);assert.equal(h.calls.separations.at(-1).sourceScale,2);
     await h.click('createLayers');assert.equal(h.calls.outputs.length,1);assert.equal(h.calls.outputs[0].options.sourceScale,1);assert.equal(h.calls.outputs[0].options.dpi,300);assert.equal(h.calls.outputs[0].palette.length,4);assert.match(h.$('status').textContent,/Created/);
+  });
+  await test('capture errors remain visible beside Read and release the busy controls',async()=>{
+    const message='The requested functionality is only allowed from inside a modal scope';
+    const h=harness({readError:message});await h.click('readArtwork');
+    assert.equal(h.$('readStatus').textContent,message);assert.equal(h.$('status').textContent,message);
+    assert.equal(h.$('readStatus').className,'capture-status error');
+    assert.equal(h.$('readArtwork').disabled,false);assert.equal(h.$('createLayers').disabled,true);
+    assert.equal(h.calls.analyses.length,0);
   });
   await test('palette edits are honored and unfocused HEX edits are committed at output',async()=>{
     const h=harness();await h.click('readArtwork');const oldAnalyses=h.calls.analyses.length;

@@ -19,6 +19,12 @@ Requires **Photoshop 25.0 or newer**, on macOS or Windows. This download is an u
 
 Follow [Adobe's UDT loading walkthrough](https://developer.adobe.com/uxp/guides/how-to/udt-deep-dive/) if the host does not appear. Keep the extracted project folder in place; UDT loads those files directly. To distribute a packaged `.ccx` installer later, use Adobe's UXP packaging workflow and your own plugin identity.
 
+### If validation passes but loading fails
+
+After enabling Developer Mode, **fully quit and reopen Photoshop**, then click **Load** again in UXP Developer Tool. The setting must take effect in the Photoshop process. In the tested Photoshop 27.8.0 session, an already-running process rejected the plugin with `Plugin rejected ... due to invalid object` and `Devtools: Failed to load the devtools plugin`; restarting Photoshop resolved that load error.
+
+If you have the original 1.0.0 files and **Read active artwork** reports `The requested functionality is only allowed from inside a modal scope`, update to **1.0.1** and use **Reload** in UXP Developer Tool. Version 1.0.1 runs capture, full-resolution analysis and preview encoding within Photoshop modal scopes. Capture progress and errors appear directly beside the Read button.
+
 ## Separate a design
 
 1. Open a flat JPG, PNG or TIFF, or a PSD whose visible layers form your finished design. Set the final canvas dimensions and print resolution first.
@@ -66,7 +72,7 @@ The plugin creates **nonoverlapping spot-color plates** and sRGB visual targets.
 
 The pure engine, controller and mocked Photoshop workflows are tested. TIFF files were independently decoded to check 1-bit depth, polarity, odd-width row padding, pixel identity and fractional DPI. Tests cover source preservation, tile alignment, cancellations, stale source rejection, transparency, full-resolution palette analysis and exact 3-/8-color flat artwork.
 
-**The panel has not yet been loaded and tested in a real Photoshop session.** UXP Developer Tool was unavailable in the build environment, so native panel layout and live host behavior still need that final check. This is a working source release for loading and testing, with the limits above recorded explicitly.
+**Live loading was verified in Photoshop 27.8.0.** That check identified a restart requirement after Developer Mode is enabled and a modal-scope requirement for image capture/preview operations. Version 1.0.1 includes the capture fix and a native-layout adjustment. The broader press/output checks described above remain automated or mocked unless separately noted.
 
 For developer checks, install Node.js 18+ and run `node tests/engine-tests.cjs`, `node tests/host-tests.cjs`, and `node tests/ui-tests.cjs` from this folder. No dependencies are needed for those tests. `tests/tiff-decode.py` optionally checks the sample films with Python + Pillow.
 

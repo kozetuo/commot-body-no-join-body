@@ -2,7 +2,7 @@
   "manifestVersion": 5,
   "id": "com.commotbody.nojoinbody",
   "name": "COMMOT BODY NO JOIN BODY",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "index.html",
   "host": { "app": "PS", "minVersion": "25.0.0", "data": { "apiVersion": 2 } },
   "entrypoints": [{

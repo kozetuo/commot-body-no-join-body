@@ -20,7 +20,9 @@ function setup({ width = 13, height = 530, failPut = false, rareAccent = false, 
   const source = { id, name: "Original.psd", width, height, resolution: 300, pixelAspectRatio: 1, activeHistoryState: { id: 7 } };
   const original = JSON.stringify(source);
   const documents = [source];
-  const calls = { gets: [], puts: [], disposed: 0, registers: [], unregisters: [], closed: [], encodes: [], analysis: [] };
+  const calls = { gets: [], puts: [], disposed: 0, registers: [], unregisters: [], closed: [], encodes: [], analysis: [], modalCommands: [] };
+  let modalDepth = 0;
+  function requireModal() { assert.ok(modalDepth > 0, "Imaging functionality is only allowed from inside a modal scope"); }
   const root = new FakeEntry("chosen", null, true);
   const rasters = new Map();
   const ps = {
@@ -33,7 +35,10 @@ function setup({ width = 13, height = 530, failPut = false, rareAccent = false, 
     documents.push(doc); ps.app.activeDocument = doc;
     return doc;
   };
-  ps.core.executeAsModal = async fn => {
+  ps.core.executeAsModal = async (fn, options) => {
+    assert.equal(modalDepth, 0, "Public operations must not nest modal scopes");
+    modalDepth++;
+    calls.modalCommands.push(options.commandName);
     const registered = new Set();
     const context = { isCancelled: false, reportProgress() {}, hostControl: {
       async registerAutoCloseDocument(id) { registered.add(id); calls.registers.push(id); },
@@ -41,9 +46,10 @@ function setup({ width = 13, height = 530, failPut = false, rareAccent = false, 
       async suspendHistory({ documentID }) { return documentID; }, async resumeHistory() {}
     } };
     try { return await fn(context); }
-    finally { for (const id of registered) { calls.closed.push(id); documents.splice(documents.findIndex(d => d.id === id), 1); } }
+    finally { modalDepth--; for (const id of registered) { calls.closed.push(id); documents.splice(documents.findIndex(d => d.id === id), 1); } }
   };
   ps.imaging.getPixels = async options => {
+    requireModal();
     calls.gets.push(options);
     const b = options.sourceBounds;
     const w = b.right - b.left, h = b.bottom - b.top;
@@ -59,9 +65,10 @@ function setup({ width = 13, height = 530, failPut = false, rareAccent = false, 
     }
     return { imageData: { width: w, height: h, components: 4, async getData() { return data; }, dispose() { calls.disposed++; } }, sourceBounds: b, level: 0 };
   };
-  ps.imaging.createImageDataFromBuffer = async (data, options) => ({ ...options, data, dispose() { calls.disposed++; } });
-  ps.imaging.encodeImageData = async options => { calls.encodes.push(options.imageData); return "mock"; };
+  ps.imaging.createImageDataFromBuffer = async (data, options) => { requireModal(); return { ...options, data, dispose() { calls.disposed++; } }; };
+  ps.imaging.encodeImageData = async options => { requireModal(); calls.encodes.push(options.imageData); return "mock"; };
   ps.imaging.putPixels = async options => {
+    requireModal();
     calls.puts.push(options);
     if (failPut) throw Error("host write failed");
     const key = options.documentID + ":" + options.layerID;
@@ -226,6 +233,9 @@ async function run() {
     const result = await host.readPreview();
     assert.equal(result.image.data[11], 0, "third source pixel is transparent");
     assert.deepEqual(Array.from(calls.encodes[0].data.slice(6, 9)), [232, 230, 218], "original preview matches separation matte");
+    assert.deepEqual(calls.modalCommands, ["Read COMMOT artwork"], "capture and its initial preview share one modal scope");
+    await host.encodePreview(new Uint8Array([255, 0, 0, 255]), 1, 1);
+    assert.equal(calls.modalCommands[1], "Render COMMOT preview", "later UI previews acquire their own modal scope");
   }
   {
     const { host, source } = setup({ rareAccent: true, realEngine: true });

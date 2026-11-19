@@ -136,7 +136,10 @@ function placePixels(raw, bounds, width, height) {
   return { data: rgba, width, height };
 }
 
-async function encodePreview(rgba, width, height, background) {
+// Imaging operations, including creation/encoding of preview buffers, must stay
+// inside executeAsModal. Keep this private to avoid nesting modal calls when
+// capture already owns a scope.
+async function encodePreviewInScope(rgba, width, height, background) {
   const bg = background || [245, 242, 232];
   const rgb = new Uint8Array(width * height * 3);
   for (let p = 0, q = 0; p < rgba.length; p += 4, q += 3) {
@@ -151,7 +154,8 @@ async function encodePreview(rgba, width, height, background) {
   } finally { imageData.dispose(); }
 }
 
-async function readPreview(maxDimension) {
+async function readPreviewInScope(maxDimension, context) {
+  assertNotCancelled(context);
   if (!ps.app.documents.length) throw new Error("Open your flat artwork in Photoshop first.");
   const doc = ps.app.activeDocument;
   const source = describe(doc);
@@ -163,34 +167,53 @@ async function readPreview(maxDimension) {
   const raw = await rawPixels(source, bounds, { width, height });
   const image = placePixels(raw, bounds, width, height);
   validateSource(source);
-  return { image, source, dataUrl: await encodePreview(image.data, width, height, [232, 230, 218]) };
+  assertNotCancelled(context);
+  return { image, source, dataUrl: await encodePreviewInScope(image.data, width, height, [232, 230, 218]) };
+}
+
+function readPreview(maxDimension) {
+  return ps.core.executeAsModal(context => readPreviewInScope(maxDimension, context), {
+    commandName: "Read COMMOT artwork"
+  });
+}
+
+function encodePreview(rgba, width, height, background) {
+  return ps.core.executeAsModal(() => encodePreviewInScope(rgba, width, height, background), {
+    commandName: "Render COMMOT preview"
+  });
 }
 
 // Infer the palette from every original pixel. Preview downsampling can erase
 // tiny accents; the streaming analyzer preserves them without retaining a full
 // high-resolution image in the plugin's heap. Reads are pinned to the captured
 // history state and rejected if the source changes while analysis is running.
-async function analyzeSource(source, options, onProgress) {
+async function analyzeSourceInScope(source, options, onProgress, context) {
   options = options || {};
   validateSource(source);
-  assertNotCancelled(null, options);
+  assertNotCancelled(context, options);
   const analyzer = engine.createAnalyzer(optionsForSource(source, options, 0));
   const rows = Math.max(1, Math.min(256, Math.floor(MAX_STRIP_PIXELS / source.width)));
   for (let y = 0; y < source.height; y += rows) {
-    assertNotCancelled(null, options);
+    assertNotCancelled(context, options);
     const height = Math.min(rows, source.height - y);
     const bounds = { left: 0, top: y, right: source.width, bottom: y + height };
     const image = placePixels(await rawPixels(source, bounds), bounds, source.width, height);
-    assertNotCancelled(null, options);
+    assertNotCancelled(context, options);
     analyzer.add(image);
-    progress(null, onProgress, (y + height) / source.height, "Finding ink colors in the full-resolution artwork");
+    progress(context, onProgress, (y + height) / source.height, "Finding ink colors in the full-resolution artwork");
     await new Promise(resolve => setTimeout(resolve, 0));
   }
-  assertNotCancelled(null, options);
+  assertNotCancelled(context, options);
   validateSource(source);
   const result = analyzer.finish();
-  assertNotCancelled(null, options);
+  assertNotCancelled(context, options);
   return result;
+}
+
+function analyzeSource(source, options, onProgress) {
+  return ps.core.executeAsModal(context => analyzeSourceInScope(source, options, onProgress, context), {
+    commandName: "Analyze COMMOT ink colors"
+  });
 }
 
 function colorLayer(indices, width, height, ink, color) {
@@ -323,7 +346,7 @@ async function exportFilms(source, palette, options, onProgress) {
     const manifest = await jobFolder.createFile("INK-MAP.json", { overwrite: false });
     createdEntries.push(manifest);
     await manifest.write(JSON.stringify({
-      plugin: "COMMOT BODY NO JOIN BODY", version: "1.0.0", source: source.name,
+      plugin: "COMMOT BODY NO JOIN BODY", version: "1.0.1", source: source.name,
       created: new Date().toISOString(), width: source.width, height: source.height,
       dpi: source.resolution, physicalWidthInches: source.width / source.resolution,
       physicalHeightInches: source.height / source.resolution,

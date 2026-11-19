@@ -1,12 +1,14 @@
 * { box-sizing: border-box; }
-html, body { height:100%; overflow:auto; }
+html { display:block; height:100%; overflow:hidden; }
+body { display:block; width:100%; height:100%; overflow:auto; }
+main, header, section, footer, p, h1, .empty-state, .ink-coverage, .setting-note { display:block; }
 title { display:none; }
 body { margin:0; background:#eae8df; color:#20251f; font-family:Arial, sans-serif; font-size:12px; }
 button, input, select { font-family:Arial,sans-serif; font-size:12px; }
 button { cursor:pointer; color:#20251f; border:0; border-radius:0; }
 button:disabled { opacity:0.4; cursor:default; }
 button:focus, input:focus, select:focus { outline:2px solid #55713c; outline-offset:2px; }
-.panel { padding:22px 20px 16px; width:100%; max-width:780px; margin:0 auto; }
+.panel { display:block; padding:22px 20px 16px; width:100%; min-width:0; max-width:780px; margin:0 auto; }
 .eyebrow,.section-heading,.brandline,.preview-toolbar,.preview-footer,.mode-row,.substrate-row,.tolerance-row,.palette-caption,.status-row,.footer { display:flex; align-items:center; justify-content:space-between; }
 .eyebrow { font-size:9px; letter-spacing:1.3px; font-weight:700; margin-bottom:16px; }
 .edition { font-size:9px; letter-spacing:0.7px; border:1px solid #9d9f91; padding:3px 6px; }
@@ -18,7 +20,10 @@ h1 { margin:0; font-size:29px; letter-spacing:-1.5px; line-height:0.98; font-wei
 .mark div:nth-child(2) { background:#f4552c; }
 .mark div:nth-child(3) { background:#a0ae59; }
 .tagline { color:#686d60; font-size:11px; margin:12px 0 19px; }
-.brand { border-bottom:1px solid #b7bbad; }
+.brand { display:block; border-bottom:1px solid #b7bbad; }
+.source-section, .controls-section, .output-section { display:block; width:100%; min-width:0; }
+.capture-status { display:block; font-size:10px; line-height:1.5; color:#5c674e; margin:0 0 10px; }
+.capture-status.error { color:#a33920; background:#f4ddd1; padding:8px; }
 .section-heading { margin:16px 0 10px; min-height:16px; }
 .section-label { font-size:9px; letter-spacing:1.2px; font-weight:700; }
 .subtle { color:#727768; font-size:10px; }
@@ -39,7 +44,7 @@ h1 { margin:0; font-size:29px; letter-spacing:-1.5px; line-height:0.98; font-wei
 #sourceName { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; max-width:62%; }
 #sourceSize { text-align:right; }
 .ink-counts { display:flex; width:100%; }
-.ink-counts button { flex:1; margin-right:5px; background:#dcded2; border:1px solid #c6cabc; padding:9px 0; font-size:19px; font-weight:700; }
+.ink-counts button { flex:1; min-width:0; width:0; margin-right:5px; background:#dcded2; border:1px solid #c6cabc; padding:9px 0; font-size:19px; font-weight:700; }
 .ink-counts button:last-child { margin-right:0; }
 .ink-counts button.active { background:#20251f; color:#d4f66a; border-color:#20251f; }
 .mode-row { margin-top:13px; }

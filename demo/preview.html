@@ -11,6 +11,7 @@
   <div id="demoNote" class="demo-note" style="display:none">INTERACTIVE PREVIEW · OUTPUTS RUN IN PHOTOSHOP</div>
   <section class="source-section">
     <div class="section-heading"><span class="section-label">01 / YOUR ARTWORK</span><button id="readArtwork" class="text-button" title="Read the visible composite of the active Photoshop document">Read active artwork ↗</button></div>
+    <p id="readStatus" class="capture-status" role="status">Open a design, then read the active artwork.</p>
     <div class="preview-card">
       <div class="preview-toolbar"><div class="tabs"><button id="viewOriginal" class="tab">Original</button><button id="viewSeparated" class="tab active">Separated</button><button id="viewFilm" class="tab">Film</button></div><span id="previewBadge" class="preview-badge">NO ARTWORK</span></div>
       <div id="previewStage" class="preview-stage"><img id="previewImage" alt="Artwork separation preview" style="display:none"><div id="emptyState" class="empty-state"><div class="empty-symbol">↗</div><p>Open your flat design<br>in Photoshop to begin.</p><span>JPG · PNG · TIFF · PSD COMPOSITE</span></div></div>
@@ -36,7 +37,7 @@
     <div class="status-row"><p id="status" role="status">Ready when your artwork is.</p><button id="cancel" class="text-button" style="display:none">Cancel</button></div>
     <p class="output-note">One ink per layer. One black film per screen.<br>Review fine dots at 100% before printing.</p>
   </section>
-  <footer class="footer"><span>LESS WAHALA. MORE PRINT.</span><span>CBNJB / 1.0</span></footer>
+  <footer class="footer"><span>LESS WAHALA. MORE PRINT.</span><span>CBNJB / 1.0.1</span></footer>
 </main>
 <script src="../plugin/lib/separation.js"></script>
 <script src="demo-host.js"></script>
