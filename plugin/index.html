@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>COMMOT BODY NO JOIN BODY</title><link rel="stylesheet" href="styles.css"></head>
+<body>
+<main class="panel">
+  <header class="brand">
+    <div class="eyebrow"><span>THE SCREEN PRINT TOOL</span><span class="edition">VOL. 001</span></div>
+    <div class="brandline"><h1>COMMOT BODY<br>NO JOIN BODY<span class="period">.</span></h1><div class="mark"><div></div><div></div><div></div></div></div>
+    <p class="tagline">One design. Separate bodies. Clean screens.</p>
+  </header>
+  <div id="demoNote" class="demo-note" style="display:none">INTERACTIVE PREVIEW · OUTPUTS RUN IN PHOTOSHOP</div>
+  <section class="source-section">
+    <div class="section-heading"><span class="section-label">01 / YOUR ARTWORK</span><button id="readArtwork" class="text-button" title="Read the visible composite of the active Photoshop document">Read active artwork ↗</button></div>
+    <div class="preview-card">
+      <div class="preview-toolbar"><div class="tabs"><button id="viewOriginal" class="tab">Original</button><button id="viewSeparated" class="tab active">Separated</button><button id="viewFilm" class="tab">Film</button></div><span id="previewBadge" class="preview-badge">NO ARTWORK</span></div>
+      <div id="previewStage" class="preview-stage"><img id="previewImage" alt="Artwork separation preview" style="display:none"><div id="emptyState" class="empty-state"><div class="empty-symbol">↗</div><p>Open your flat design<br>in Photoshop to begin.</p><span>JPG · PNG · TIFF · PSD COMPOSITE</span></div></div>
+      <div class="preview-footer"><span id="sourceName">Waiting for artwork</span><span id="sourceSize">—</span></div>
+    </div>
+  </section>
+  <section class="controls-section">
+    <div class="section-heading"><span class="section-label">02 / SPLIT THE COLORS</span><span id="inkSummary" class="subtle">Maximum ink count</span></div>
+    <div id="inkButtons" class="ink-counts" role="group" aria-label="Maximum ink colors"><button id="count3">3</button><button id="count4">4</button><button id="count5" class="active">5</button><button id="count6">6</button><button id="count7">7</button><button id="count8">8</button></div>
+    <div class="mode-row"><div class="mode-buttons"><button id="modeSolid" class="active">Solid inks</button><button id="modeHalftone">Halftone tones</button></div><button id="resetPalette" class="text-button" disabled>Auto palette ↻</button></div>
+    <p id="modeHint" class="hint">Clean, solid shapes. Best for logos, type and flat illustrations.</p>
+    <div id="halftoneSettings" class="halftone-settings" style="display:none"><label>Lines / inch<input id="lpi" type="number" min="10" max="120" value="45"></label><label>Angle °<input id="angle" type="number" min="0" max="90" value="22.5" step="0.5"></label><div class="setting-note">Uses source DPI.<br>Export at final print size.</div></div>
+    <div class="substrate-row"><label class="substrate-label">Shirt / paper<select id="substrate"><option value="none" selected>Print every color</option><option value="white">White · leave unprinted</option><option value="black">Black · leave unprinted</option><option value="custom">Custom · leave unprinted</option></select></label><label id="substrateHexWrap" class="custom-field" style="display:none">HEX<input id="substrateHex" type="text" value="#F5EBD8" maxlength="7"></label></div>
+    <div id="toleranceWrap" class="tolerance-row" style="display:none"><label>Background tolerance<input id="tolerance" type="number" min="0" max="30" value="3"></label><span>Lower keeps more detail.</span></div>
+    <div id="palette" class="palette"><p class="palette-placeholder">Your suggested ink colors will appear here.</p></div>
+    <div class="palette-caption"><span>EDIT HEX TO CHANGE AN INK</span><span>CLICK SWATCH TO INSPECT FILM</span></div>
+  </section>
+  <section class="output-section">
+    <div class="section-heading"><span class="section-label">03 / MAKE YOUR SCREENS</span><span class="subtle">Original size</span></div>
+    <button id="createLayers" class="primary-button" disabled><span>Create ink layers</span><span>↗</span></button>
+    <button id="exportFilms" class="secondary-button" disabled>Export 1-bit print films (.TIFF)</button>
+    <div id="progressTrack" class="progress-track" style="display:none"><div id="progressFill"></div></div>
+    <div class="status-row"><p id="status" role="status">Ready when your artwork is.</p><button id="cancel" class="text-button" style="display:none">Cancel</button></div>
+    <p class="output-note">One ink per layer. One black film per screen.<br>Review fine dots at 100% before printing.</p>
+  </section>
+  <footer class="footer"><span>LESS WAHALA. MORE PRINT.</span><span>CBNJB / 1.0</span></footer>
+</main>
+<script src="index.js"></script>
+</body>
+</html>
